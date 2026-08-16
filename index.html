@@ -1,0 +1,96 @@
+
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>FixItNow — AI Repair Assistant</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,600;1,700&family=Mrs+Saint+Delafield&family=Jost:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--pink:#f4c9d6;--deep:#df6d94;--pale:#fbeaf0;--sage:#a9bd8f;--sageD:#5f7a4d;--sageP:#e6edda;--cream:#faf5ec;--ink:#3c3327;--white:#fffdf9;--danger:#bd4e63;--gold:#b47b20}
+*{box-sizing:border-box;margin:0;padding:0}html{scroll-behavior:smooth}body{background:var(--cream);color:var(--ink);font-family:Jost,sans-serif;line-height:1.6;overflow-x:hidden}a{color:inherit;text-decoration:none}.wrap{max-width:1140px;margin:auto;padding:0 30px}.disp{font-family:"Playfair Display",serif}.script{font-family:"Mrs Saint Delafield",cursive}
+.topnav{background:var(--pale);padding:16px 0;position:sticky;top:0;z-index:20;border-bottom:1px solid #0001}.navin{display:flex;align-items:center;justify-content:space-between;gap:20px}.brand{font-family:"Mrs Saint Delafield";font-size:34px;color:var(--deep)}.navlinks{display:flex;gap:25px;font-size:12px;text-transform:uppercase;letter-spacing:.07em}.navlinks a{opacity:.72}.navlinks a:hover{opacity:1}.navright{display:flex;gap:9px;align-items:center}.btn{border:0;border-radius:999px;padding:12px 20px;font:600 13px Jost;cursor:pointer;transition:.18s}.btn:hover{transform:translateY(-2px)}.deep{background:var(--deep);color:white;box-shadow:0 10px 25px #df6d9466}.outline{background:transparent;border:1px solid var(--sageD);color:var(--sageD)}.ghost{background:#fff8;color:var(--ink);border:1px solid #0002}.userpill{font-size:12px;background:#fff;padding:8px 12px;border-radius:999px;display:none}
+.hero{background:var(--pale);padding:72px 0 60px}.heroGrid{display:grid;grid-template-columns:1.05fr .95fr;gap:55px;align-items:center}.eyebrow{font-size:12px;text-transform:uppercase;letter-spacing:.12em;color:var(--sageD);font-weight:700}.hero h1{font:italic 600 clamp(40px,5vw,62px)/1.06 "Playfair Display";margin:15px 0}.hero h1 em{font:400 1.15em "Mrs Saint Delafield";color:var(--deep);font-style:normal}.lede{max-width:500px;opacity:.78}.ctas{display:flex;gap:12px;margin-top:28px;flex-wrap:wrap}.preview{background:white;padding:14px;border-radius:9px;box-shadow:0 25px 50px #3c332744;transform:rotate(1.3deg)}.screen{background:var(--sageP);padding:18px;border-radius:4px}.line{background:white;border-radius:9px;padding:12px;margin:8px 0;display:flex;justify-content:space-between;font-size:12px}.line span:first-child{opacity:.6}.tag{color:var(--sageD);font-weight:700}
+.stats{background:var(--pink);padding:24px 0}.statsIn{display:flex;justify-content:space-around;gap:15px;flex-wrap:wrap;text-align:center}.stat b{font:italic 700 28px "Playfair Display";color:white;display:block}.stat small{font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:white}
+section.block{padding:68px 0}.sage{background:var(--sageP)}.pink{background:var(--pale)}.heading{font:italic 600 31px "Playfair Display";margin-bottom:10px}.heading:before{content:"❖";font:normal 15px Jost;color:var(--deep);margin-right:10px}.lede2{max-width:560px;opacity:.7;font-size:14px;margin-bottom:30px}
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}.card{background:white;padding:24px;border-radius:15px;box-shadow:0 12px 30px #3c33271a}.card h3{font:italic 600 19px "Playfair Display";margin:9px 0}.card p{font-size:13px;opacity:.72}.pill{display:inline-block;background:var(--pink);color:white;border-radius:99px;padding:4px 10px;font-size:10px;letter-spacing:.06em}
+.diag{background:white;border-radius:20px;padding:30px;box-shadow:0 25px 55px #3c332733}.chips{display:flex;gap:9px;flex-wrap:wrap;margin:10px 0 26px}.chip{border:1px solid transparent;background:var(--sageP);padding:9px 14px;border-radius:999px;cursor:pointer;font-size:13px}.chip.active{background:var(--sageD);color:white}.label{font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--sageD);font-weight:700}.symptom{width:100%;min-height:100px;resize:vertical;border:1px solid #0002;border-radius:12px;padding:14px;font:14px Jost;margin-top:10px}.upload{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-top:14px}.file{border:1px dashed #0004;padding:10px 14px;border-radius:999px;font-size:12px;cursor:pointer}.file input{display:none}.fileName{font-size:12px;opacity:.6}.result{display:none;background:var(--sageP);border-radius:16px;padding:20px;margin-top:22px}.result.show{display:block}.resultHead{display:flex;justify-content:space-between;gap:15px;flex-wrap:wrap}.result h3{font:italic 600 21px "Playfair Display"}.rec{border-radius:999px;padding:7px 12px;font-size:11px;font-weight:700;background:var(--sageD);color:white}.rec.call{background:var(--gold)}.rec.danger{background:var(--danger)}.mini{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:15px 0}.mini>div{background:white;border-radius:10px;padding:12px}.mini small{display:block;text-transform:uppercase;font-size:9px;opacity:.55}.mini b{font-size:14px}.note{background:white;border-left:3px solid var(--deep);padding:13px;border-radius:9px;font-size:13px}.safety{margin-top:10px;padding:12px;border-radius:9px;background:#fff5;font-size:12px}.historyGrid{display:grid;gap:12px}.historyItem{background:white;border-radius:14px;padding:16px;display:flex;justify-content:space-between;gap:15px;align-items:center}.historyItem img{width:70px;height:70px;object-fit:cover;border-radius:10px}.historyMain{flex:1}.historyMain strong{font-family:"Playfair Display";font-style:italic}.muted{font-size:12px;opacity:.62}.empty{opacity:.6;padding:20px;text-align:center}
+.cta{background:var(--sageD);color:white;padding:70px 0;text-align:center}.cta h2{font:italic 600 40px "Playfair Display"}.cta p{max-width:520px;margin:10px auto 25px;opacity:.85}.contact{max-width:650px;margin:auto;background:white;padding:24px;border-radius:16px}.formgrid{display:grid;gap:12px}.input{width:100%;padding:12px 14px;border:1px solid #0002;border-radius:10px;font:14px Jost}.toast{position:fixed;right:20px;bottom:20px;background:var(--ink);color:white;padding:12px 16px;border-radius:10px;display:none;z-index:100;font-size:13px}
+.modal{position:fixed;inset:0;background:#0008;display:none;align-items:center;justify-content:center;z-index:50;padding:20px}.modal.open{display:flex}.modalBox{background:var(--cream);width:min(460px,100%);border-radius:18px;padding:25px;position:relative}.close{position:absolute;right:16px;top:12px;border:0;background:none;font-size:25px;cursor:pointer}.tabs{display:flex;gap:8px;margin:12px 0 18px}.tab{flex:1;padding:10px;border:0;border-radius:9px;cursor:pointer}.tab.active{background:var(--deep);color:white}.hidden{display:none!important}
+footer{background:var(--pink);padding:28px 0;color:white}.foot{display:flex;justify-content:space-between;gap:15px;flex-wrap:wrap}.footbrand{font:28px "Mrs Saint Delafield"}
+@media(max-width:800px){.navlinks{display:none}.heroGrid{grid-template-columns:1fr}.cards{grid-template-columns:1fr}.mini{grid-template-columns:1fr}.userpill{display:block}.navright .authText{display:none}}
+</style>
+</head>
+<body>
+<nav class="topnav"><div class="wrap navin">
+  <a class="brand" href="#">FixItNow</a>
+  <div class="navlinks"><a href="#about">About</a><a href="#diagnose">Diagnose</a><a href="#works">How it works</a><a href="#history">My Repairs</a><a href="#contact">Contact</a></div>
+  <div class="navright"><span id="userPill" class="userpill"></span><button id="authBtn" class="btn deep" onclick="openAuth()">Sign in</button><button id="logoutBtn" class="btn outline hidden" onclick="logout()">Log out</button></div>
+</div></nav>
+
+<header class="hero" id="about"><div class="wrap heroGrid">
+  <div><div class="eyebrow">✦ AI household repair assistant</div><h1>Where <em>broken</em> meets<br>a simple fix</h1>
+  <p class="lede">Upload a photo, describe the symptom, and get likely causes, safety-first guidance, an estimated cost range, and a repair-or-technician recommendation.</p>
+  <div class="ctas"><button class="btn deep" onclick="go('diagnose')">Start a diagnosis</button><button class="btn outline" onclick="go('works')">See how it works</button></div></div>
+  <div class="preview"><div class="screen"><div class="line"><span>Device</span><b>Front-load washer</b></div><div class="line"><span>Likely issue</span><b>Worn door seal</b></div><div class="line"><span>Difficulty</span><b>Moderate</b></div><div class="line"><span>Safety</span><b class="tag">First, always</b></div></div></div>
+</div></header>
+<div class="stats"><div class="wrap statsIn"><div class="stat"><b>Real DB</b><small>repair history</small></div><div class="stat"><b>Photo</b><small>upload supported</small></div><div class="stat"><b>AI</b><small>optional model</small></div><div class="stat"><b>Safety</b><small>first, always</small></div></div></div>
+
+<section class="block sage" id="works"><div class="wrap"><div class="heading">How FixItNow works</div><p class="lede2">A real end-to-end flow: authenticate, diagnose, save the result, and revisit it later.</p><div class="cards">
+<div class="card"><span class="pill">01 · INPUT</span><h3>Describe + upload</h3><p>Choose the device, type the symptom, and optionally attach a JPG, PNG, WEBP, or GIF photo.</p></div>
+<div class="card"><span class="pill">02 · ANALYZE</span><h3>Gemini AI or safety rules</h3><p>With a Gemini API key, the server can analyze the symptom and image. Without one, the built-in safety-first engine still works.</p></div>
+<div class="card"><span class="pill">03 · SAVE</span><h3>Build your repair history</h3><p>Every authenticated diagnosis is stored in SQLite with its result and image, so users can review or delete it later.</p></div>
+</div></div></section>
+
+<section class="block pink" id="diagnose"><div class="wrap"><div class="heading">Run a diagnosis</div><p class="lede2">Sign in to save your diagnosis. The app works without an external AI key, and becomes image-capable when GEMINI_API_KEY is configured.</p>
+<div class="diag">
+<div class="label">01 · Device</div>
+<div class="chips" id="chips">
+<button class="chip" data-v="washer">🧺 Washing machine</button><button class="chip" data-v="laptop">💻 Laptop</button><button class="chip" data-v="lamp">💡 Lamp / light</button><button class="chip" data-v="blender">🍹 Blender</button><button class="chip" data-v="outlet">🔌 Outlet / wiring</button><button class="chip" data-v="fridge">🧊 Refrigerator</button><button class="chip" data-v="dishwasher">🍽️ Dishwasher</button><button class="chip" data-v="tv">📺 TV</button>
+</div>
+<div class="label">02 · Symptom</div><textarea id="symptom" class="symptom" placeholder="Example: it makes a loud grinding noise during spin and leaks a little water"></textarea>
+<div class="upload"><label class="file">📷 Add a photo <input id="photo" type="file" accept="image/jpeg,image/png,image/webp,image/gif"></label><span id="fileName" class="fileName">No photo selected</span><button class="btn deep" onclick="runDiagnosis()">Diagnose it →</button></div>
+<div class="result" id="result"><div class="resultHead"><h3 id="rTitle"></h3><span id="rRec" class="rec"></span></div>
+<div class="mini"><div><small>Difficulty</small><b id="rDiff"></b></div><div><small>Estimated cost</small><b id="rCost"></b></div><div><small>Time</small><b id="rTime"></b></div></div>
+<div class="note" id="rNote"></div><div class="safety" id="rSafety"></div><div class="muted" id="rSource"></div></div>
+</div></div></section>
+
+<section class="block cream" id="history"><div class="wrap"><div class="heading">My repair history</div><p class="lede2">Saved diagnoses are tied to your account and stored locally in the app database.</p><div id="historyGrid" class="historyGrid"><div class="empty">Sign in to see your saved repairs.</div></div></div></section>
+
+<section class="block sage" id="contact"><div class="wrap"><div class="heading">Contact FixItNow</div><div class="contact"><form id="contactForm" class="formgrid"><input id="contactEmail" class="input" type="email" placeholder="Your email" required><textarea id="contactMessage" class="input" rows="5" placeholder="How can we help?" required></textarea><button class="btn deep" type="submit">Send message</button></form></div></div></section>
+<section class="cta"><div class="wrap"><h2>Ready to fix something today?</h2><p>Create an account, diagnose a device, and keep the result in your repair history.</p><button class="btn deep" onclick="go('diagnose')">Start building FixItNow →</button></div></section>
+<footer><div class="wrap foot"><div class="footbrand">FixItNow</div><div>Full-stack app · SQLite · image uploads · Gemini AI diagnosis</div></div></footer>
+
+<div id="authModal" class="modal"><div class="modalBox"><button class="close" onclick="closeAuth()">×</button><h2 class="disp" id="authTitle">Welcome back</h2><div class="tabs"><button id="loginTab" class="tab active" onclick="switchAuth('login')">Sign in</button><button id="registerTab" class="tab" onclick="switchAuth('register')">Create account</button></div>
+<form id="authForm" class="formgrid"><input id="authName" class="input hidden" placeholder="Full name"><input id="authEmail" class="input" type="email" placeholder="Email" required><input id="authPassword" class="input" type="password" placeholder="Password (6+ characters)" required><button class="btn deep" type="submit">Continue</button></form></div></div>
+<div id="toast" class="toast"></div>
+<script>
+let mode="login", selectedDevice="";
+const $=id=>document.getElementById(id);
+function go(id){$(id).scrollIntoView({behavior:"smooth"});}
+function toast(msg){$("toast").textContent=msg;$("toast").style.display="block";setTimeout(()=>$("toast").style.display="none",2800)}
+function openAuth(){ $("authModal").classList.add("open"); }
+function closeAuth(){ $("authModal").classList.remove("open"); }
+function switchAuth(m){mode=m;$("loginTab").classList.toggle("active",m==="login");$("registerTab").classList.toggle("active",m==="register");$("authTitle").textContent=m==="login"?"Welcome back":"Create your FixItNow account";$("authName").classList.toggle("hidden",m!=="register");$("authName").required=m==="register";}
+document.querySelectorAll(".chip").forEach(c=>c.onclick=()=>{document.querySelectorAll(".chip").forEach(x=>x.classList.remove("active"));c.classList.add("active");selectedDevice=c.dataset.v;});
+$("photo").onchange=e=>$("fileName").textContent=e.target.files[0]?.name||"No photo selected";
+$("authForm").onsubmit=async e=>{e.preventDefault();const body={name:$("authName").value,email:$("authEmail").value,password:$("authPassword").value};const r=await fetch("/api/auth/"+mode,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});const d=await r.json();if(!r.ok)return toast(d.error||"Authentication failed");closeAuth();toast("You're signed in.");updateAuth();loadHistory();};
+async function updateAuth(){const r=await fetch("/api/me");if(r.ok){const d=await r.json();$("authBtn").classList.add("hidden");$("logoutBtn").classList.remove("hidden");$("userPill").style.display="block";$("userPill").textContent=d.user.name;}else{$("authBtn").classList.remove("hidden");$("logoutBtn").classList.add("hidden");$("userPill").style.display="none";}}
+async function logout(){await fetch("/api/auth/logout",{method:"POST"});toast("Signed out.");updateAuth();$("historyGrid").innerHTML='<div class="empty">Sign in to see your saved repairs.</div>';}
+async function runDiagnosis(){
+ if(!selectedDevice){toast("Choose a device first.");return}
+ const symptom=$("symptom").value.trim(), photo=$("photo").files[0];if(!symptom&&!photo){toast("Describe the symptom or add a photo.");return}
+ const me=await fetch("/api/me");if(!me.ok){openAuth();toast("Sign in to save your diagnosis.");return}
+ const fd=new FormData();fd.append("device",selectedDevice);fd.append("symptom",symptom);if(photo)fd.append("photo",photo);
+ const btn=document.querySelector("#diagnose .deep");btn.disabled=true;btn.textContent="Analyzing…";
+ try{const r=await fetch("/api/diagnose",{method:"POST",body:fd});const d=await r.json();if(!r.ok)throw Error(d.error);showResult(d.diagnosis);loadHistory();}catch(e){toast(e.message)}finally{btn.disabled=false;btn.textContent="Diagnose it →";}
+}
+function showResult(x){$("rTitle").textContent=x.title;$("rDiff").textContent=x.difficulty||"—";$("rCost").textContent=x.cost||"—";$("rTime").textContent=x.time||"—";$("rRec").textContent=x.recommendation||"Needs more detail";$("rRec").className="rec "+(String(x.recommendation).toLowerCase().includes("call")?"call":"");if(String(x.safety).toLowerCase().includes("stop"))$("rRec").classList.add("danger");$("rNote").textContent=x.note||"";$("rSafety").textContent="Safety: "+(x.safety||"Use caution and do not open hazardous equipment.");$("rSource").textContent="Analysis source: "+(x.source==="gemini"?"Gemini AI + safety prompt":"built-in safety-first rules");$("result").classList.add("show");$("result").scrollIntoView({behavior:"smooth",block:"nearest"});}
+async function loadHistory(){const r=await fetch("/api/history");if(!r.ok)return;const d=await r.json();if(!d.history.length){$("historyGrid").innerHTML='<div class="empty">No saved diagnoses yet. Your next one will appear here.</div>';return}$("historyGrid").innerHTML=d.history.map(x=>`<article class="historyItem">${x.image_url?`<img src="${x.image_url}" alt="">`:""}<div class="historyMain"><strong>${escapeHtml(x.title)}</strong><div class="muted">${escapeHtml(x.device)} · ${new Date(x.created_at+"Z").toLocaleString()}</div><div class="muted">${escapeHtml(x.cost||"—")} · ${escapeHtml(x.recommendation||"")}</div></div><button class="btn outline" onclick="deleteHistory(${x.id})">Delete</button></article>`).join("");}
+async function deleteHistory(id){if(!confirm("Delete this saved diagnosis?"))return;const r=await fetch("/api/history/"+id,{method:"DELETE"});if(r.ok){toast("Deleted.");loadHistory()}else{const d=await r.json();toast(d.error||"Could not delete.");}}
+function escapeHtml(s){return String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));}
+$("contactForm").onsubmit=async e=>{e.preventDefault();const r=await fetch("/api/contact",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({email:$("contactEmail").value,message:$("contactMessage").value})});const d=await r.json();toast(d.message||d.error);if(r.ok)e.target.reset();};
+updateAuth();loadHistory();
+</script>
+</body></html>
