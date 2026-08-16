@@ -1,7 +1,0 @@
-node_modules/
-.env
-fixitnow.db
-fixitnow.db-shm
-fixitnow.db-wal
-public/uploads/*
-!public/uploads/.gitkeep
