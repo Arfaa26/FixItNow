@@ -1,0 +1,8 @@
+node_modules
+npm-debug.log
+.env
+.git
+fixitnow.db
+data
+public/uploads/*
+!public/uploads/.gitkeep
