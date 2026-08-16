@@ -61,10 +61,18 @@ CREATE TABLE IF NOT EXISTS diagnoses (
   note TEXT,
   safety TEXT,
   source TEXT NOT NULL DEFAULT 'rules',
+  evidence TEXT,
+  causes TEXT,
+  steps TEXT,
   created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 `);
+
+// Upgrade databases created by older FixItNow versions without destroying history.
+for (const [name, type] of [["evidence","TEXT"],["causes","TEXT"],["steps","TEXT"]]) {
+  try { db.exec(`ALTER TABLE diagnoses ADD COLUMN ${name} ${type}`); } catch (_) {}
+}
 
 const storage = multer.diskStorage({
   destination: (_, __, cb) => cb(null, uploadDir),
@@ -120,17 +128,93 @@ function auth(req, res, next) {
 function normalize(s) { return String(s || "").toLowerCase(); }
 
 const rules = [
-  {device:"outlet", kw:["spark","shock","burn","smoke","hot to touch"], title:"Possible wiring fault", difficulty:"Do not DIY", cost:"—", time:"—", recommendation:"Call a technician", safety:"STOP. This can involve live electrical wiring. Do not open the outlet or continue testing it.", note:"Switch off the affected circuit if you can do so safely without touching damaged wiring, and contact a licensed electrician."},
-  {device:"washer", kw:["leak","water","seal","drip"], title:"Worn door seal or hose", difficulty:"Moderate", cost:"₹1,200 – ₹5,000", time:"30–60 min", recommendation:"Repair", safety:"Unplug before inspecting external hoses or the door gasket.", note:"Check the door gasket for visible tears and the drain hose connection. Replace damaged external parts rather than opening the electrical cabinet."},
-  {device:"washer", kw:["noise","grinding","shak","loud","bang"], title:"Possible drum bearing or balance issue", difficulty:"Hard", cost:"₹4,000 – ₹15,000", time:"1–3 hrs", recommendation:"Call a technician", safety:"Keep hands away from moving parts and unplug before any inspection.", note:"Grinding during spin can indicate bearings or suspension components. A technician quote is sensible before buying parts."},
-  {device:"laptop", kw:["crack","flicker","screen","dim","line"], title:"Display panel or cable fault", difficulty:"Moderate", cost:"₹3,000 – ₹18,000", time:"1–3 hrs", recommendation:"Repair", safety:"Power down and unplug. Do not work on a swollen or damaged battery.", note:"A visible crack usually means panel replacement; flicker can also come from the display cable or graphics hardware."},
-  {device:"laptop", kw:["charg","battery","power","will not turn on","won't turn on"], title:"Charging path or battery issue", difficulty:"Easy–Moderate", cost:"₹1,500 – ₹8,000", time:"20–90 min", recommendation:"Repair", safety:"If the battery is swollen, hot, smoking, or leaking, stop using the laptop and seek professional service.", note:"Try a known-good charger and wall outlet first. If the charging port is loose, professional repair may be safer than opening the device."},
-  {device:"lamp", kw:["flicker","will not turn on","won't turn on","dim","bulb"], title:"Loose bulb or worn switch", difficulty:"Easy", cost:"₹150 – ₹1,500", time:"10–20 min", recommendation:"Repair", safety:"Unplug the lamp before changing a bulb or inspecting an external switch.", note:"Reseat the bulb and try a compatible replacement. Do not open mains wiring if you are not qualified."},
-  {device:"blender", kw:["smell","burn","motor","smoke","overheat"], title:"Motor overheating", difficulty:"Do not DIY", cost:"—", time:"—", recommendation:"Call a technician", safety:"STOP. A burning smell or smoke is a safety warning. Unplug it and do not run it again.", note:"Let the appliance cool and have the motor, wiring, and control components checked."},
-  {device:"blender", kw:["leak","loose","blade","will not spin","won't spin"], title:"Worn gasket or blade assembly", difficulty:"Easy", cost:"₹800 – ₹2,500", time:"15–30 min", recommendation:"Repair", safety:"Unplug before handling the blade assembly.", note:"A seal, coupling, or blade assembly can cause these symptoms. Replace damaged parts rather than forcing the mechanism."},
-  {device:"fridge", kw:["not cold","warm","ice","frost","noise"], title:"Cooling or airflow issue", difficulty:"Moderate", cost:"₹500 – ₹8,000+", time:"30–120 min", recommendation:"Needs more detail", safety:"Do not puncture refrigerant lines or dismantle the sealed cooling system.", note:"Check temperature settings, door sealing, and visible airflow obstruction. Refrigerant or compressor work requires a qualified technician."},
-  {device:"dishwasher", kw:["leak","water","drain","smell","not cleaning"], title:"Filter, drain, or seal issue", difficulty:"Easy–Moderate", cost:"₹500 – ₹4,000", time:"20–60 min", recommendation:"Repair", safety:"Switch off and unplug before reaching into the unit.", note:"Clean the accessible filter and check the door seal and drain area for obvious blockage."},
-  {device:"tv", kw:["screen","flicker","no picture","sound","remote"], title:"Display, input, or control issue", difficulty:"Easy–Moderate", cost:"₹300 – ₹20,000+", time:"10–120 min", recommendation:"Needs more detail", safety:"Do not open a TV power supply or CRT-style equipment.", note:"Check input source, cables, remote batteries, and power-cycle the TV. Internal power-board work should be professional."}
+  {device:"outlet", kw:["spark","shock","burn","smoke","hot to touch","sparking"],
+   title:"Possible electrical fault", difficulty:"Do not DIY", cost:"₹500 – ₹2,500+", time:"30–90 min",
+   recommendation:"Call a technician", safety:"STOP. Do not touch exposed wiring, a sparking outlet, smoke, or a hot socket. Switch off the affected circuit only if you can do so safely.",
+   evidence:["Sparking, heat, burning smell, smoke, or shocks point to an electrical fault that should be professionally inspected."],
+   causes:["Loose connection","Overloaded or damaged socket","Worn internal wiring"],
+   steps:["Stop using the outlet.","Keep flammable items away.","If safe, switch off the relevant breaker.","Arrange a licensed electrician inspection."],
+   note:"Do not remove the faceplate or test live wiring yourself."},
+
+  {device:"washer", kw:["leak","water","seal","drip"],
+   title:"Likely leak from the door seal or hose connection", difficulty:"Easy–Moderate", cost:"₹500 – ₹5,000", time:"20–60 min",
+   recommendation:"Repair", safety:"Unplug the washer before inspecting external hoses or the door gasket. Do not work around exposed electrical connections.",
+   evidence:["A water leak is commonly caused by a damaged door gasket, loose hose connection, or blocked/draining path."],
+   causes:["Door gasket tear or poor seal","Loose/damaged inlet or drain hose","Drain/filter blockage"],
+   steps:["Unplug the washer.","Check the door gasket for cuts, trapped objects, or deformation.","Check visible hose connections for looseness or cracks.","Clean the accessible drain filter if the manual allows it.","Replace a visibly damaged gasket or hose."],
+   note:"If water is coming from underneath the cabinet or near electrical components, stop and get it inspected."},
+
+  {device:"washer", kw:["noise","grinding","shak","loud","bang","vibration"],
+   title:"Possible drum bearing or suspension problem", difficulty:"Moderate–Hard", cost:"₹4,000 – ₹15,000", time:"1–3 hrs",
+   recommendation:"Call a technician", safety:"Keep hands away from moving parts. Unplug before any physical inspection.",
+   evidence:["Grinding or heavy vibration during spin is more consistent with a mechanical drum, bearing, suspension, or load-balance problem than a software issue."],
+   causes:["Worn drum bearing","Worn suspension/shock absorber","Unbalanced load or foreign object"],
+   steps:["Run an empty spin cycle and note whether the noise remains.","Check that the machine is level and stable.","With the machine unplugged, gently check whether the drum has unusual play.","If grinding persists, stop using it and request a technician inspection."],
+   note:"A technician should confirm the bearing/suspension before you buy replacement parts."},
+
+  {device:"laptop", kw:["crack","flicker","screen","dim","line","lines","display"],
+   title:"Likely display panel or display-cable issue", difficulty:"Moderate", cost:"₹3,000 – ₹18,000", time:"1–3 hrs",
+   recommendation:"Repair", safety:"Power down and unplug. Never open or handle a swollen, hot, leaking, or damaged battery.",
+   evidence:["Visible cracks strongly suggest panel damage; intermittent flicker or lines can also come from the display cable or graphics hardware."],
+   causes:["Cracked LCD/OLED panel","Loose or damaged display cable","Graphics/display hardware fault"],
+   steps:["Connect an external monitor if available.","Check whether the external display is normal.","If only the laptop panel is affected, have the panel/cable inspected.","Back up important data before repair if the laptop is still usable."],
+   note:"If the battery is swollen or the chassis is lifting, stop using the laptop and seek professional service."},
+
+  {device:"laptop", kw:["charg","battery","power","will not turn on","won't turn on","not charging"],
+   title:"Charging path, adapter, or battery issue", difficulty:"Easy–Moderate", cost:"₹1,500 – ₹8,000", time:"20–90 min",
+   recommendation:"Repair", safety:"If the battery is swollen, hot, smoking, or leaking, stop using the laptop immediately.",
+   evidence:["Failure to charge or power on can come from the charger, wall outlet, charging port, battery, or power circuitry."],
+   causes:["Faulty charger/adapter","Damaged charging port","Worn battery","Internal power fault"],
+   steps:["Try a known-good wall outlet.","Check the charger and cable for visible damage.","Try a compatible known-good charger if available.","If the port is loose or the laptop remains dead, arrange a service inspection."],
+   note:"Do not keep using a damaged charger or a visibly swollen battery."},
+
+  {device:"lamp", kw:["flicker","will not turn on","won't turn on","dim","bulb"],
+   title:"Likely bulb, socket, or switch problem", difficulty:"Easy", cost:"₹150 – ₹1,500", time:"10–20 min",
+   recommendation:"Repair", safety:"Unplug the lamp before changing a bulb or checking an external switch. Do not open mains wiring.",
+   evidence:["Flickering or no light is commonly caused by the bulb, socket contact, switch, or supply connection."],
+   causes:["Failed/incompatible bulb","Loose bulb contact","Worn switch or socket"],
+   steps:["Unplug the lamp.","Fit a compatible replacement bulb.","Check the plug and cable for visible damage.","If it still flickers or smells burnt, stop using it and get it inspected."],
+   note:"A burning smell, melted plastic, or sparking means stop using the lamp."},
+
+  {device:"blender", kw:["smell","burn","motor","smoke","overheat","hot"],
+   title:"Motor overheating or electrical fault", difficulty:"Do not DIY", cost:"₹500 – ₹3,500+", time:"30–90 min",
+   recommendation:"Call a technician", safety:"STOP. Burning smell, smoke, or excessive heat can indicate an electrical or motor fault. Unplug it and do not run it again.",
+   evidence:["Burning smell, smoke, or abnormal heat is a safety warning rather than a normal operating symptom."],
+   causes:["Overloaded motor","Blocked blade assembly","Worn motor/coupling","Electrical fault"],
+   steps:["Unplug the blender.","Allow it to cool completely.","Check only for obvious food blockage around the removable blade jar.","If the smell or heat returns, stop using it and arrange service."],
+   note:"Do not open the motor housing."},
+
+  {device:"blender", kw:["leak","loose","blade","will not spin","won't spin"],
+   title:"Possible blade assembly, coupling, or gasket issue", difficulty:"Easy–Moderate", cost:"₹500 – ₹2,500", time:"15–30 min",
+   recommendation:"Repair", safety:"Unplug before handling the blade assembly. Never reach into the jar while the motor is connected to power.",
+   evidence:["Leaks around the jar or a blade that does not rotate can come from a worn gasket, coupling, or jammed blade assembly."],
+   causes:["Worn jar gasket","Jammed blade","Worn motor coupling"],
+   steps:["Unplug the blender.","Remove the jar according to the manufacturer's instructions.","Check the gasket for damage and clean obvious food residue.","Do not force a jammed blade; replace damaged parts or seek service."],
+   note:"If there is a burning smell or motor overheating, use the electrical-fault guidance instead."},
+
+  {device:"fridge", kw:["not cold","warm","ice","frost","noise","cooling"],
+   title:"Likely airflow, temperature, or defrost issue", difficulty:"Easy–Moderate", cost:"₹500 – ₹8,000+", time:"20–120 min",
+   recommendation:"Needs more detail", safety:"Do not puncture refrigerant lines or dismantle the sealed cooling system.",
+   evidence:["Poor cooling can be caused by temperature settings, blocked airflow, a door seal, excessive frost, or a cooling-system fault."],
+   causes:["Blocked internal airflow","Door seal problem","Excessive frost/defrost issue","Compressor or refrigerant fault"],
+   steps:["Confirm the temperature setting.","Make sure internal vents are not blocked by food.","Check the door gasket for gaps or damage.","If there is heavy frost, unusual compressor noise, or persistent warming, arrange service."],
+   note:"Refrigerant and compressor work must be handled by a qualified technician."},
+
+  {device:"dishwasher", kw:["leak","water","drain","smell","not cleaning"],
+   title:"Likely filter, drain, spray-arm, or door-seal issue", difficulty:"Easy–Moderate", cost:"₹500 – ₹4,000", time:"20–60 min",
+   recommendation:"Repair", safety:"Switch off and unplug before reaching into the unit.",
+   evidence:["Poor cleaning, standing water, smell, or leaks often start with a blocked filter, drain path, spray arm, or door seal."],
+   causes:["Clogged filter","Blocked drain path","Blocked spray arm","Damaged door seal"],
+   steps:["Switch off and unplug the dishwasher.","Clean the accessible filter.","Check spray-arm holes for food debris.","Check the door seal for obvious damage.","If it still leaks or fails to drain, arrange service."],
+   note:"Do not dismantle internal electrical components."},
+
+  {device:"tv", kw:["screen","flicker","no picture","sound","remote","black screen"],
+   title:"Likely input, cable, display, or power issue", difficulty:"Easy–Moderate", cost:"₹300 – ₹20,000+", time:"10–120 min",
+   recommendation:"Needs more detail", safety:"Do not open a TV power supply. Internal capacitors can retain dangerous voltage even after unplugging.",
+   evidence:["A black/flickering screen can come from the input source, cable, backlight, panel, or power board."],
+   causes:["Wrong input/source","Loose HDMI or power cable","Backlight/panel fault","Power-board issue"],
+   steps:["Power-cycle the TV.","Confirm the correct input/source.","Reconnect the HDMI and power cables.","Try another input or source device.","If the TV remains black but audio works, request a display/backlight diagnosis."],
+   note:"Avoid opening the TV cabinet yourself."}
 ];
 
 function ruleDiagnosis(device, symptom) {
@@ -138,13 +222,14 @@ function ruleDiagnosis(device, symptom) {
   let match = rules.find(r => r.device === device && r.kw.some(k => s.includes(k)));
   if (!match) {
     match = {
-      title: "A few possibilities to narrow down",
-      difficulty: "Depends",
-      cost: "₹500 – ₹15,000",
-      time: "Varies",
+      title: "More information is needed to narrow this down",
+      difficulty: "Depends on the cause", cost: "Varies", time: "Varies",
       recommendation: "Needs more detail",
-      safety: "Do not open mains-powered equipment, gas appliances, sealed batteries, or refrigerant systems.",
-      note: "Add a sound, smell, warning light/error code, when the problem happens, and what changed immediately before it started."
+      safety: "Stay with external, low-risk checks. Do not open mains-powered equipment, gas appliances, sealed batteries, or refrigerant systems.",
+      evidence:["The current symptom does not provide enough evidence to name one fault confidently."],
+      causes:["Several faults can create similar symptoms."],
+      steps:["Tell us exactly when the problem happens.","Add any sound, smell, leak, warning light, error code, or visible damage.","Say what changed immediately before the issue started.","If safe, describe whether the problem happens every time or only during a specific cycle."],
+      note:"A clearer symptom description or a focused photo will produce a more useful diagnosis."
     };
   }
   return {...match, source:"rules"};
@@ -154,53 +239,65 @@ async function aiDiagnosis({device, symptom, imageFile}) {
   const ai = await getGeminiClient();
   if (!ai) return null;
 
-  const system = `You are FixItNow, a safety-first household repair assistant.
-Analyze the user's appliance/device and symptom, optionally using the attached photo.
-Return ONLY valid JSON with exactly these fields:
-title, difficulty, cost, time, recommendation, safety, note.
-Rules:
-- Be conservative. A photo cannot prove an internal fault.
-- Never tell a user to open live mains wiring, gas systems, sealed refrigerant systems, swollen/damaged batteries, high-voltage equipment, or other hazardous internals.
-- If a dangerous condition is suspected, recommendation must be "Call a technician".
-- Cost must be a rough India estimate in INR and explicitly approximate when possible.
-- If evidence is insufficient, say so and ask for useful non-dangerous observations in note.
-- Keep safety prominent and practical.
-- Do not invent exact part numbers or certainty.`;
+  const system = `You are FixItNow, a practical and safety-first household repair diagnostician.
+Your job is NOT to give a vague chatbot answer. Turn the user's symptom (and photo when provided) into a useful troubleshooting plan.
 
-  const parts = [
-    { text: `${system}\n\nDevice: ${device}\nSymptom: ${symptom || "(no text symptom; inspect the image carefully)"}\nProvide the safest useful diagnosis.` }
-  ];
+Return ONLY valid JSON with exactly these string fields:
+title, evidence, causes, steps, difficulty, cost, time, recommendation, safety, note.
+
+Field rules:
+- title: the most likely problem in plain language, e.g. "Likely drain blockage or pump issue".
+- evidence: 1-3 concise observations that connect the user's symptom/photo to the diagnosis. Separate multiple items with " | ".
+- causes: 2-4 plausible causes, ordered most likely first. Separate with " | ".
+- steps: 4-6 numbered, practical, SAFE checks or fixes the user can perform. Separate steps with " | ".
+- difficulty: "Easy", "Easy–Moderate", "Moderate", "Hard", or "Do not DIY".
+- cost: approximate India repair cost in INR. Use a range and say "approx." when uncertain. If no safe estimate is possible, say "Depends on inspection".
+- time: realistic approximate time, not a made-up exact number.
+- recommendation: exactly one of "Repair", "Call a technician", "Stop using it", or "Needs more detail".
+- safety: a short, prominent safety instruction specific to this device/problem.
+- note: explain what would confirm/refute the diagnosis and when professional service is needed.
+
+Reasoning rules:
+1. Never claim a photo proves an internal component failure. Use "likely", "possible", or "consistent with" when appropriate.
+2. Prefer the simplest plausible cause before expensive internal failures.
+3. Give actionable steps, not generic advice.
+4. For electrical shock/sparks/smoke/burning smell, gas, refrigerant, high voltage, damaged/swollen batteries, or moving machinery hazards, stop unsafe DIY and recommend professional service.
+5. Never instruct the user to open live mains wiring, gas systems, sealed refrigerant systems, power supplies, CRTs, or swollen batteries.
+6. If the evidence is insufficient, do NOT invent a diagnosis. Use "Needs more detail" and ask for specific safe observations.
+7. Use Indian repair-cost context, but keep estimates approximate.
+8. The answer should be understandable to a normal non-technical user.`;
+
+  const parts = [{ text: `${system}
+
+Device: ${device}
+User symptom: ${symptom || "(No written symptom; inspect the image, but do not overclaim what it proves.)"}
+
+Return the JSON now.` }];
 
   if (imageFile) {
     const imageBytes = fs.readFileSync(imageFile.path).toString("base64");
-    parts.push({
-      inlineData: {
-        mimeType: imageFile.mimetype,
-        data: imageBytes
-      }
-    });
+    parts.push({ inlineData: { mimeType: imageFile.mimetype, data: imageBytes } });
   }
 
   const response = await ai.models.generateContent({
     model: GEMINI_MODEL,
     contents: [{ role: "user", parts }],
-    config: {
-      responseMimeType: "application/json"
-    }
+    config: { responseMimeType: "application/json", temperature: 0.2 }
   });
 
   const raw = response.text || "";
   let parsed;
-  try {
-    parsed = JSON.parse(raw);
-  } catch {
-    throw new Error("Gemini returned an invalid diagnosis format.");
-  }
+  try { parsed = JSON.parse(raw); }
+  catch { throw new Error("Gemini returned an invalid diagnosis format."); }
 
-  const required = ["title","difficulty","cost","time","recommendation","safety","note"];
+  const required = ["title","evidence","causes","steps","difficulty","cost","time","recommendation","safety","note"];
   for (const key of required) {
     if (typeof parsed[key] !== "string") parsed[key] = String(parsed[key] ?? "");
   }
+
+  const allowed = new Set(["Repair","Call a technician","Stop using it","Needs more detail"]);
+  if (!allowed.has(parsed.recommendation)) parsed.recommendation = "Needs more detail";
+
   return {...parsed, source:"gemini"};
 }
 
@@ -276,10 +373,14 @@ app.post("/api/diagnose", auth, upload.single("photo"), async (req,res) => {
 
     const imageUrl = req.file ? `/uploads/${req.file.filename}` : null;
     const insert = db.prepare(`
-      INSERT INTO diagnoses(user_id,device,symptom,image_url,title,difficulty,cost,time,recommendation,note,safety,source)
-      VALUES(?,?,?,?,?,?,?,?,?,?,?,?)
+      INSERT INTO diagnoses(user_id,device,symptom,image_url,title,difficulty,cost,time,recommendation,note,safety,source,evidence,causes,steps)
+      VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
     `);
-    const info = insert.run(req.user.id, device, symptom, imageUrl, result.title, result.difficulty, result.cost, result.time, result.recommendation, result.note, result.safety, result.source);
+    const info = insert.run(
+      req.user.id, device, symptom, imageUrl, result.title, result.difficulty, result.cost, result.time,
+      result.recommendation, result.note, result.safety, result.source,
+      result.evidence || "", result.causes || "", result.steps || ""
+    );
     const saved = db.prepare("SELECT * FROM diagnoses WHERE id=?").get(info.lastInsertRowid);
     res.json({diagnosis:saved, aiEnabled:Boolean(GEMINI_API_KEY)});
   } catch(e) {
