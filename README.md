@@ -68,3 +68,11 @@ After replacing the GitHub repository contents, trigger a new Render deploy. Ver
 - `/` opens the FixItNow website
 
 Do not put the Gemini API key in the frontend. Set it only in Render Environment as `GEMINI_API_KEY`.
+
+
+## 2.0 diagnosis improvements
+- Structured AI diagnosis: evidence, likely causes, safe steps, escalation, cost and time.
+- Safety-focused Gemini prompt with conservative uncertainty handling.
+- Rich diagnosis result UI and useful pre-diagnosis guidance.
+- Creator footer with LinkedIn, GitHub and email links.
+- Existing SQLite history preserved; new diagnosis fields are added automatically on startup.
